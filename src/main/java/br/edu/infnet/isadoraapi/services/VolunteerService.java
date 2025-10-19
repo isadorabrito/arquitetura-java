@@ -1,5 +1,7 @@
 package br.edu.infnet.isadoraapi.services;
 
+import br.edu.infnet.isadoraapi.exceptions.InvalidVolunteerException;
+import br.edu.infnet.isadoraapi.exceptions.NotFoundVolunteerException;
 import br.edu.infnet.isadoraapi.interfaces.ICrudService;
 import br.edu.infnet.isadoraapi.model.Address;
 import br.edu.infnet.isadoraapi.model.Volunteer;
@@ -14,6 +16,7 @@ import java.util.Optional;
 @Service
 public class VolunteerService implements ICrudService<Volunteer, Long> {
     private static final String FILE_PATH = "src/main/resources/volunteers.txt";
+    
     private static List<Volunteer> volunteers = new ArrayList<>();
 
     @Override
@@ -27,12 +30,19 @@ public class VolunteerService implements ICrudService<Volunteer, Long> {
         loadData();
         return volunteers.stream()
                 .filter(volunteer -> volunteer.getId().equals(id))
-                .findFirst();
+                .findFirst()
+                .or(() -> {
+                    throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
+                });
     }
 
     @Override
     public Volunteer save(Volunteer volunteer) {
         loadData();
+
+        if (volunteer.getCpf() == null || volunteer.getCpf().isBlank()) {
+            throw new InvalidVolunteerException("O CPF do voluntário é obrigatório.");
+        }
 
         Long newId = volunteers.stream()
                 .mapToLong(Volunteer::getId)
