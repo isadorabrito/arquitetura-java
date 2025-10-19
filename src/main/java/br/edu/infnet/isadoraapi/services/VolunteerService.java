@@ -34,15 +34,36 @@ public class VolunteerService implements ICrudService<Volunteer, Long> {
     public Volunteer save(Volunteer volunteer) {
         loadData();
 
-        for (int i = 0; i < volunteers.size(); i++) {
-            if (volunteers.get(i).getId().equals(volunteer.getId())) {
-                volunteers.set(i, volunteer);
-                break;
-            }
-        }
+        Long newId = volunteers.stream()
+                .mapToLong(Volunteer::getId)
+                .max()
+                .orElse(0L) + 1;
+        volunteer.setId(newId);
+        volunteers.add(volunteer);
 
         saveData();
         return volunteer;
+    }
+
+    @Override
+    public void update(Long id, Volunteer volunteerDetails) {
+        loadData();
+
+        for (int i = 0; i < volunteers.size(); i++) {
+            Volunteer existingVolunteer = volunteers.get(i);
+
+            if (existingVolunteer.getId().equals(id)) {
+                existingVolunteer.setName(volunteerDetails.getName());
+                existingVolunteer.setEmail(volunteerDetails.getEmail());
+                existingVolunteer.setPhone(volunteerDetails.getPhone());
+                existingVolunteer.setCpf(volunteerDetails.getCpf());
+                existingVolunteer.setRegistration(volunteerDetails.getRegistration());
+
+                saveData();
+
+            }
+        }
+
     }
 
     @Override
@@ -50,6 +71,21 @@ public class VolunteerService implements ICrudService<Volunteer, Long> {
         loadData();
         volunteers.removeIf(volunteer -> volunteer.getId().equals(id));
         saveData();
+    }
+
+    public Optional<Volunteer> updateAddress(Long id, Address newAddress) {
+        loadData();
+        Optional<Volunteer> volunteerOpt = volunteers.stream()
+                .filter(volunteer -> volunteer.getId().equals(id))
+                .findFirst();
+
+        if (volunteerOpt.isPresent()) {
+            Volunteer volunteer = volunteerOpt.get();
+            volunteer.setAddress(newAddress);
+            saveData();
+        }
+
+        return volunteerOpt;
     }
 
     private void loadData() {
@@ -68,7 +104,6 @@ public class VolunteerService implements ICrudService<Volunteer, Long> {
                 LocalDateTime joinDate = LocalDateTime.parse(data[6] + "T00:00:00");
                 volunteer.setJoinDate(joinDate);
 
-                
                 Address address = new Address();
                 address.setZipCode(data[7]);
                 address.setStreet(data[8]);

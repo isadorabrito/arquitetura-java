@@ -36,8 +36,9 @@ public class VolunteerController {
     @PutMapping("/{id}")
     public ResponseEntity<Volunteer> update(@PathVariable Long id, @RequestBody Volunteer volunteer) {
 
-        volunteer.setId(id);
-        return ResponseEntity.ok(volunteerService.save(volunteer));
+        volunteerService.update(id, volunteer);
+        return ResponseEntity.noContent().build();
+
     }
 
     @DeleteMapping("/{id}")
@@ -45,5 +46,13 @@ public class VolunteerController {
 
         volunteerService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/address")
+    public ResponseEntity<Void> updateAddress(@PathVariable Long id,
+            @RequestBody br.edu.infnet.isadoraapi.model.Address address) {
+        return volunteerService.updateAddress(id, address)
+                .map(v -> ResponseEntity.ok().<Void>build())
+                .orElse(ResponseEntity.notFound().build());
     }
 }

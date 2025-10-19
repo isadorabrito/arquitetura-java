@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Service
 public class DonorService implements ICrudService<Donor, Long> {
+
     private static final String FILE_PATH = "src/main/resources/donors.txt";
     private static List<Donor> donors = new ArrayList<>();
 
@@ -32,15 +33,35 @@ public class DonorService implements ICrudService<Donor, Long> {
     public Donor save(Donor donor) {
         loadData();
 
-        for (int i = 0; i < donors.size(); i++) {
-            if (donors.get(i).getId().equals(donor.getId())) {
-                donors.set(i, donor);
-                break;
-            }
-        }
+        Long newId = donors.stream()
+                .mapToLong(Donor::getId)
+                .max()
+                .orElse(0L) + 1;
+        donor.setId(newId);
+        donors.add(donor);
 
         saveData();
         return donor;
+    }
+
+    @Override
+    public void update(Long id, Donor donorDetails) {
+        loadData();
+
+        for (int i = 0; i < donors.size(); i++) {
+            Donor existingDonor = donors.get(i);
+
+            if (existingDonor.getId().equals(id)) {
+                existingDonor.setName(donorDetails.getName());
+                existingDonor.setEmail(donorDetails.getEmail());
+                existingDonor.setPhone(donorDetails.getPhone());
+                existingDonor.setCpf(donorDetails.getCpf());
+                existingDonor.setActive(donorDetails.isActive());
+
+                saveData();
+
+            }
+        }
     }
 
     @Override
@@ -50,12 +71,36 @@ public class DonorService implements ICrudService<Donor, Long> {
         saveData();
     }
 
+    public Optional<Donor> deactivate(Long id) {
+        loadData();
+        Optional<Donor> donorOpt = donors.stream()
+                .filter(donor -> donor.getId().equals(id))
+                .findFirst();
+
+        donorOpt.ifPresent(donor -> {
+            donor.setActive(false);
+            saveData();
+        });
+
+        return donorOpt;
+    }
+
     private void loadData() {
         donors.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
-            String line = reader.readLine(); 
+            String line;
+            boolean firstLine = true;
+
             while ((line = reader.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue;
+                }
+
                 String[] data = line.split(";");
+                if (data.length < 6)
+                    continue;
+
                 Donor donor = new Donor();
                 donor.setId(Long.parseLong(data[0]));
                 donor.setName(data[1]);
@@ -72,7 +117,6 @@ public class DonorService implements ICrudService<Donor, Long> {
 
     private void saveData() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-
             writer.write("id;name;email;phone;cpf;active\n");
 
             for (Donor donor : donors) {

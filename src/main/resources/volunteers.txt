@@ -1,2 +1,1 @@
 id;name;email;phone;cpf;registration;join_date;zip_code;street;neighborhood;city;state
-1;Joana Silva;joana.silva@voluntario.org;(21)99999-8888;123.789.456-00;1001;2025-10-01;22222-222;Rua das Flores, 123;Centro;Rio de Janeiro;RJ

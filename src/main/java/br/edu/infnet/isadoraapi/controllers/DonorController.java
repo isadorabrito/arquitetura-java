@@ -34,10 +34,10 @@ public class DonorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Donor> update(@PathVariable Long id, @RequestBody Donor donor) {
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody Donor donor) {
 
-        donor.setId(id);
-        return ResponseEntity.ok(donorService.save(donor));
+        donorService.update(id, donor);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
@@ -45,5 +45,12 @@ public class DonorController {
 
         donorService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        return donorService.deactivate(id)
+                .map(d -> ResponseEntity.ok().<Void>build())
+                .orElse(ResponseEntity.notFound().build());
     }
 }
