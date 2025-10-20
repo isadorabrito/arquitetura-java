@@ -1,5 +1,6 @@
 package br.edu.infnet.isadoraapi.controllers;
 
+import br.edu.infnet.isadoraapi.model.Address;
 import br.edu.infnet.isadoraapi.model.Volunteer;
 import br.edu.infnet.isadoraapi.services.VolunteerService;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,7 @@ public class VolunteerController {
 
     @PatchMapping("/{id}/address")
     public ResponseEntity<Void> updateAddress(@PathVariable Long id,
-            @RequestBody br.edu.infnet.isadoraapi.model.Address address) {
+            @RequestBody Address address) {
         return volunteerService.updateAddress(id, address)
                 .map(v -> ResponseEntity.ok().<Void>build())
                 .orElse(ResponseEntity.notFound().build());
