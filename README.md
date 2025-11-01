@@ -1,6 +1,6 @@
 # Sistema de Gerenciamento de Doações
 
-Sistema desenvolvido para gerenciar doações, doadores e voluntários, facilitando o processo de doações e sua distribuição.
+Sistema desenvolvido para gerenciar doações, doadores e voluntários, facilitando o processo e sua distribuição.
 
 ## Sobre o Projeto
 
