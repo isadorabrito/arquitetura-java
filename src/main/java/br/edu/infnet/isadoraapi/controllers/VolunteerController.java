@@ -5,6 +5,8 @@ import br.edu.infnet.isadoraapi.model.Volunteer;
 import br.edu.infnet.isadoraapi.services.VolunteerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -30,8 +32,14 @@ public class VolunteerController {
     }
 
     @PostMapping
-    public Volunteer create(@RequestBody Volunteer volunteer) {
-        return volunteerService.save(volunteer);
+    public ResponseEntity<Volunteer> create(@RequestBody Volunteer volunteer) {
+        Volunteer createdVolunteer = volunteerService.save(volunteer);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdVolunteer.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(createdVolunteer);
     }
 
     @PutMapping("/{id}")
