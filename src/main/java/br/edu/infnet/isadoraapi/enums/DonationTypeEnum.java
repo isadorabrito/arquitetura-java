@@ -1,7 +1,8 @@
 package br.edu.infnet.isadoraapi.enums;
 
-public enum DonationType {
+public enum DonationTypeEnum {
     CLOTHING,
     BLANKET,
+    FOOD,
     OTHER
 }

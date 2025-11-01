@@ -1,8 +1,11 @@
 package br.edu.infnet.isadoraapi.controllers;
 
+import br.edu.infnet.isadoraapi.dto.DonationDTO;
 import br.edu.infnet.isadoraapi.model.Donation;
-import br.edu.infnet.isadoraapi.enums.DonationType;
+import br.edu.infnet.isadoraapi.enums.DonationTypeEnum;
 import br.edu.infnet.isadoraapi.services.DonationService;
+import jakarta.validation.Valid;
+import org.springframework.beans.BeanUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +40,9 @@ public class DonationController {
     @PostMapping("/donors/{donorId}")
     public ResponseEntity<Donation> create(
             @PathVariable Long donorId,
-            @RequestBody Donation donation) {
+            @Valid @RequestBody DonationDTO donationDTO) {
+        var donation = new Donation();
+        BeanUtils.copyProperties(donationDTO, donation);
         Donation createdDonation = donationService.create(donation, donorId);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -60,12 +65,14 @@ public class DonationController {
     }
 
     @GetMapping("/types/{type}")
-    public List<Donation> findByType(@PathVariable DonationType type) {
+    public List<Donation> findByType(@PathVariable DonationTypeEnum type) {
         return donationService.findByDonationType(type);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody Donation donation) {
+    public ResponseEntity<Void> update(@PathVariable Long id, @Valid @RequestBody DonationDTO donationDTO) {
+        var donation = donationService.findById(id).get();
+        BeanUtils.copyProperties(donationDTO, donation);
         donationService.update(id, donation);
         return ResponseEntity.noContent().build();
     }

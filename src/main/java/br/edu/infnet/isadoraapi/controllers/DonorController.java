@@ -1,7 +1,10 @@
 package br.edu.infnet.isadoraapi.controllers;
 
+import br.edu.infnet.isadoraapi.dto.DonorDTO;
 import br.edu.infnet.isadoraapi.model.Donor;
 import br.edu.infnet.isadoraapi.services.DonorService;
+import jakarta.validation.Valid;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -29,7 +32,9 @@ public class DonorController {
     }
 
     @PostMapping
-    public ResponseEntity<Donor> create(@RequestBody Donor donor) {
+    public ResponseEntity<Donor> create(@Valid @RequestBody DonorDTO donorDTO) {
+        Donor donor = new Donor();
+        BeanUtils.copyProperties(donorDTO, donor);
         Donor createdDonor = donorService.save(donor);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -40,8 +45,10 @@ public class DonorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody Donor donor) {
-        donorService.update(id, donor);
+    public ResponseEntity<Void> update(@PathVariable Long id, @Valid @RequestBody DonorDTO donorDTO) {
+        Donor donor = donorService.findById(id).get();
+        BeanUtils.copyProperties(donorDTO, donor);
+        donorService.save(donor);
         return ResponseEntity.noContent().build();
     }
 

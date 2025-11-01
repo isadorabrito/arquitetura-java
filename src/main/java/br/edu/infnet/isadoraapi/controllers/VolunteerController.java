@@ -1,8 +1,11 @@
 package br.edu.infnet.isadoraapi.controllers;
 
+import br.edu.infnet.isadoraapi.dto.VolunteerDTO;
 import br.edu.infnet.isadoraapi.model.Address;
 import br.edu.infnet.isadoraapi.model.Volunteer;
 import br.edu.infnet.isadoraapi.services.VolunteerService;
+import jakarta.validation.Valid;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -32,7 +35,9 @@ public class VolunteerController {
     }
 
     @PostMapping
-    public ResponseEntity<Volunteer> create(@RequestBody Volunteer volunteer) {
+    public ResponseEntity<Volunteer> create(@Valid @RequestBody VolunteerDTO volunteerDTO) {
+        var volunteer = new Volunteer();
+        BeanUtils.copyProperties(volunteerDTO, volunteer);
         Volunteer createdVolunteer = volunteerService.save(volunteer);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -43,8 +48,9 @@ public class VolunteerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Volunteer> update(@PathVariable Long id, @RequestBody Volunteer volunteer) {
-
+    public ResponseEntity<Volunteer> update(@PathVariable Long id, @Valid @RequestBody VolunteerDTO volunteerDTO) {
+        var volunteer = volunteerService.findById(id).get();
+        BeanUtils.copyProperties(volunteerDTO, volunteer);
         volunteerService.update(id, volunteer);
         return ResponseEntity.noContent().build();
 

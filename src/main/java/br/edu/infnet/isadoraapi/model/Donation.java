@@ -1,6 +1,7 @@
 package br.edu.infnet.isadoraapi.model;
 
-import br.edu.infnet.isadoraapi.enums.DonationType;
+import br.edu.infnet.isadoraapi.enums.DonationTypeEnum;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -25,7 +26,7 @@ public class Donation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DonationType donationType;
+    private DonationTypeEnum donationType;
 
     @Column(nullable = false)
     private int quantity;
