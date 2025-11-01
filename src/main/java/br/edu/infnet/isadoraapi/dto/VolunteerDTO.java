@@ -1,5 +1,7 @@
 package br.edu.infnet.isadoraapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +12,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class VolunteerDTO {
 
     @NotBlank(message = "Name cannot be blank")

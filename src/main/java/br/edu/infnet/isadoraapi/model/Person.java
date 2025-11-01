@@ -8,13 +8,8 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@MappedSuperclass
 public abstract class Person {
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    private Long id;
-
     @Column(nullable = false)
     private String name;
 

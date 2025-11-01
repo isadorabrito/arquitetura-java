@@ -27,7 +27,7 @@ public class DonorServiceImpl implements DonorService {
     public Optional<Donor> findById(Long id) {
         return donorRepository.findById(id)
                 .or(() -> {
-                    throw new NotFoundDonorException("Doador com ID " + id + " não encontrado.");
+                    throw new NotFoundDonorException("Donor with ID " + id + " not found");
                 });
     }
 
@@ -58,7 +58,7 @@ public class DonorServiceImpl implements DonorService {
     @Transactional
     public void delete(Long id) {
         if (!donorRepository.existsById(id)) {
-            throw new NotFoundDonorException("Doador com ID " + id + " não encontrado.");
+            throw new NotFoundDonorException("Donor with ID " + id + " not found");
         }
         donorRepository.deleteById(id);
     }

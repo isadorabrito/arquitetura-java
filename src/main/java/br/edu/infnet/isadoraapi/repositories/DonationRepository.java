@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface DonationRepository extends JpaRepository<Donation, Long> {
     List<Donation> findByDonorId(Long donorId);
+    List<Donation> findByVolunteerId(Long volunteerId);
     List<Donation> findByDonationDateBetween(LocalDate start, LocalDate end);
     List<Donation> findByDonationType(DonationTypeEnum type);
     List<Donation> findByDonorIdAndDonationType(Long donorId, DonationTypeEnum type);

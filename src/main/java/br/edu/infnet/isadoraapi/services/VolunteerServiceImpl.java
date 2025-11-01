@@ -32,7 +32,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     public Optional<Volunteer> findById(Long id) {
         return volunteerRepository.findById(id)
                 .or(() -> {
-                    throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
+                    throw new NotFoundVolunteerException("Volunteer with ID " + id + " not found");
                 });
     }
 
@@ -44,10 +44,10 @@ public class VolunteerServiceImpl implements VolunteerService {
         if (volunteer.getId() == null) {
             if (volunteerRepository.existsByCpf(volunteer.getCpf())) {
                 throw new InvalidVolunteerException(
-                        "Já existe um voluntário cadastrado com este CPF: " + volunteer.getCpf());
+                        "A volunteer with this CPF already exists: " + volunteer.getCpf());
             }
             if (volunteerRepository.existsByRegistration(volunteer.getRegistration())) {
-                throw new InvalidVolunteerException("Já existe um voluntário cadastrado com este número de registro: "
+                throw new InvalidVolunteerException("A volunteer with this registration number already exists: "
                         + volunteer.getRegistration());
             }
             volunteer.setJoinDate(LocalDateTime.now());
@@ -94,10 +94,10 @@ public class VolunteerServiceImpl implements VolunteerService {
 
     private void validateVolunteer(Volunteer volunteer) {
         if (volunteer.getCpf() == null || volunteer.getCpf().isBlank()) {
-            throw new InvalidVolunteerException("O CPF do voluntário é obrigatório.");
+            throw new InvalidVolunteerException("Volunteer CPF is required");
         }
         if (volunteer.getRegistration() <= 0) {
-            throw new InvalidVolunteerException("O número de registro do voluntário deve ser maior que zero.");
+            throw new InvalidVolunteerException("Volunteer registration number must be greater than zero");
         }
     }
 }

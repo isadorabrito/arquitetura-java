@@ -5,6 +5,7 @@ import br.edu.infnet.isadoraapi.services.DonorService;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
+@Order(2)
 public class DonorLoader implements ApplicationRunner {
 
     private final DonorService donorService;

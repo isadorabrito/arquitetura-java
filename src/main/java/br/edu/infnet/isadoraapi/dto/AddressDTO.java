@@ -1,11 +1,14 @@
 package br.edu.infnet.isadoraapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class AddressDTO {
     
     @NotBlank(message = "ZIP code cannot be blank")

@@ -5,6 +5,7 @@ import br.edu.infnet.isadoraapi.model.Volunteer;
 import br.edu.infnet.isadoraapi.services.VolunteerService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Component
+@Order(1)
 public class VolunteerLoader implements ApplicationRunner {
 
     private final VolunteerService volunteerService;

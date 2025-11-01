@@ -1,12 +1,18 @@
 package br.edu.infnet.isadoraapi.services;
 
 import br.edu.infnet.isadoraapi.model.Donation;
+import br.edu.infnet.isadoraapi.model.Donor;
+import br.edu.infnet.isadoraapi.model.Volunteer;
+import br.edu.infnet.isadoraapi.dto.DonationUpdateDTO;
+import br.edu.infnet.isadoraapi.dto.DonationResponseDTO;
 import br.edu.infnet.isadoraapi.enums.DonationTypeEnum;
 import br.edu.infnet.isadoraapi.exceptions.InvalidDonationException;
 import br.edu.infnet.isadoraapi.exceptions.NotFoundDonationException;
 import br.edu.infnet.isadoraapi.exceptions.NotFoundDonorException;
+import br.edu.infnet.isadoraapi.exceptions.NotFoundVolunteerException;
 import br.edu.infnet.isadoraapi.repositories.DonationRepository;
 import br.edu.infnet.isadoraapi.repositories.DonorRepository;
+import br.edu.infnet.isadoraapi.repositories.VolunteerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,62 +25,89 @@ public class DonationServiceImpl implements DonationService {
 
     private final DonationRepository donationRepository;
     private final DonorRepository donorRepository;
+    private final VolunteerRepository volunteerRepository;
 
-    public DonationServiceImpl(DonationRepository donationRepository, DonorRepository donorRepository) {
+    public DonationServiceImpl(DonationRepository donationRepository, DonorRepository donorRepository,
+            VolunteerRepository volunteerRepository) {
         this.donationRepository = donationRepository;
         this.donorRepository = donorRepository;
+        this.volunteerRepository = volunteerRepository;
     }
 
     @Override
-    public List<Donation> findAll() {
-        return donationRepository.findAll();
+    public List<DonationResponseDTO> findAll() {
+        return donationRepository.findAll().stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
     }
 
     @Override
-    public Optional<Donation> findById(Long id) {
+    public Optional<DonationResponseDTO> findById(Long id) {
         return donationRepository.findById(id)
+                .map(DonationResponseDTO::fromDonation)
                 .or(() -> {
-                    throw new NotFoundDonationException("Doação com ID " + id + " não encontrada.");
+                    throw new NotFoundDonationException("Donation with ID " + id + " not found");
                 });
     }
 
     @Override
     @Transactional
-    public Donation create(Donation donation, Long donorId) {
+    public DonationResponseDTO create(Donation donation, Long donorId, Long volunteerId) {
         if (donation.getQuantity() <= 0) {
             throw new InvalidDonationException("A quantidade da doação deve ser maior que zero");
         }
 
-        return donorRepository.findById(donorId)
-                .map(donor -> {
-                    donation.setDonor(donor);
-                    donation.setDonationDate(LocalDate.now());
-                    return donationRepository.save(donation);
-                })
-                .orElseThrow(() -> new NotFoundDonorException("Doador não encontrado com ID: " + donorId));
+        Donor donor = donorRepository.findById(donorId)
+                .orElseThrow(() -> new NotFoundDonorException("Donor with ID " + donorId
+                        + " not found. Please register the donor before creating a donation."));
+
+        Volunteer volunteer = volunteerRepository.findById(volunteerId)
+                .orElseThrow(() -> new NotFoundVolunteerException("Volunteer with ID " + volunteerId
+                        + " not found. Please register the volunteer before creating a donation."));
+
+        donation.setDonor(donor);
+        donation.setVolunteer(volunteer);
+
+        Donation savedDonation = donationRepository.save(donation);
+        return DonationResponseDTO.fromDonation(savedDonation);
     }
 
     @Override
-    public List<Donation> findByDonorId(Long donorId) {
-        return donationRepository.findByDonorId(donorId);
+    public List<DonationResponseDTO> findByVolunteerId(Long volunteerId) {
+        return donationRepository.findByVolunteerId(volunteerId).stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
     }
 
     @Override
-    public List<Donation> findByDateRange(LocalDate start, LocalDate end) {
+    public List<DonationResponseDTO> findByDonorId(Long donorId) {
+        return donationRepository.findByDonorId(donorId).stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
+    }
+
+    @Override
+    public List<DonationResponseDTO> findByDateRange(LocalDate start, LocalDate end) {
         if (start.isAfter(end)) {
-            throw new InvalidDonationException("A data inicial não pode ser posterior à data final");
+            throw new InvalidDonationException("Start date cannot be after end date");
         }
-        return donationRepository.findByDonationDateBetween(start, end);
+        return donationRepository.findByDonationDateBetween(start, end).stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
     }
 
     @Override
-    public List<Donation> findByDonationType(DonationTypeEnum type) {
-        return donationRepository.findByDonationType(type);
+    public List<DonationResponseDTO> findByDonationType(DonationTypeEnum type) {
+        return donationRepository.findByDonationType(type).stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
     }
 
     @Override
-    public List<Donation> findByDonorAndType(Long donorId, DonationTypeEnum type) {
-        return donationRepository.findByDonorIdAndDonationType(donorId, type);
+    public List<DonationResponseDTO> findByDonorAndType(Long donorId, DonationTypeEnum type) {
+        return donationRepository.findByDonorIdAndDonationType(donorId, type).stream()
+                .map(DonationResponseDTO::fromDonation)
+                .toList();
     }
 
     @Override
@@ -88,7 +121,7 @@ public class DonationServiceImpl implements DonationService {
 
     @Override
     @Transactional
-    public Donation update(Long id, Donation donationDetails) {
+    public DonationResponseDTO update(Long id, DonationUpdateDTO donationDetails) {
         if (donationDetails.getQuantity() <= 0) {
             throw new InvalidDonationException("A quantidade da doação deve ser maior que zero");
         }
@@ -98,8 +131,8 @@ public class DonationServiceImpl implements DonationService {
                     existingDonation.setDescription(donationDetails.getDescription());
                     existingDonation.setDonationType(donationDetails.getDonationType());
                     existingDonation.setQuantity(donationDetails.getQuantity());
-                    return donationRepository.save(existingDonation);
+                    return DonationResponseDTO.fromDonation(donationRepository.save(existingDonation));
                 })
-                .orElseThrow(() -> new NotFoundDonationException("Doação não encontrada com ID: " + id));
+                .orElseThrow(() -> new NotFoundDonationException("Donation with ID " + id + " not found"));
     }
 }

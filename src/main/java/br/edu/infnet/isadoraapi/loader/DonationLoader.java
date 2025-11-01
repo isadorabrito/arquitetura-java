@@ -1,6 +1,7 @@
 package br.edu.infnet.isadoraapi.loader;
 
 import br.edu.infnet.isadoraapi.model.Donation;
+import br.edu.infnet.isadoraapi.dto.DonationResponseDTO;
 import br.edu.infnet.isadoraapi.enums.DonationTypeEnum;
 import br.edu.infnet.isadoraapi.services.DonationService;
 import org.springframework.boot.ApplicationArguments;
@@ -38,22 +39,20 @@ public class DonationLoader implements ApplicationRunner {
         while ((line = reader.readLine()) != null) {
             fields = line.split(";");
             
-         
             Long donorId = Long.parseLong(fields[1].trim());
+            Long volunteerId = Long.parseLong(fields[2].trim());
 
-        
             Donation donation = new Donation();
-            donation.setDonationType(DonationTypeEnum.valueOf(fields[2].trim()));
-            donation.setQuantity(Integer.parseInt(fields[3].trim()));
-            donation.setDescription(fields[4].trim());
-            donation.setDonationDate(LocalDate.parse(fields[5].trim()));
+            donation.setDonationType(DonationTypeEnum.valueOf(fields[3].trim()));
+            donation.setQuantity(Integer.parseInt(fields[4].trim()));
+            donation.setDescription(fields[5].trim());
+            donation.setDonationDate(LocalDate.parse(fields[6].trim()));
 
-         
-            donationService.create(donation, donorId);
+            donationService.create(donation, donorId, volunteerId);
         }
 
      
-        List<Donation> donations = donationService.findAll();
+        List<DonationResponseDTO> donations = donationService.findAll();
         System.out.println("Total donations loaded: " + donations.size());
         donations.forEach(System.out::println);
 

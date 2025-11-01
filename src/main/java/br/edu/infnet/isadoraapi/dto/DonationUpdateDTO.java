@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class DonationDTO {
+public class DonationUpdateDTO {
     
     @NotNull(message = "Donation type cannot be null")
     @Enumerated(EnumType.STRING)
@@ -24,10 +24,4 @@ public class DonationDTO {
 
     @NotBlank(message = "Description cannot be blank")
     private String description;
-
-    @NotNull(message = "Donor ID cannot be null")
-    private Long donorId;
-
-    @NotNull(message = "Volunteer ID cannot be null")
-    private Long volunteerId;
 }

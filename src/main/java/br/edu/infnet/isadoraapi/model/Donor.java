@@ -1,11 +1,8 @@
 package br.edu.infnet.isadoraapi.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Entity
@@ -14,16 +11,12 @@ import java.util.List;
 public class Donor extends Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Long id;
     
     private boolean active;
     
-    @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Donation> donations;
-    
     public Donor() {
         this.active = true;
-        this.donations = new ArrayList<>();
     }
 }

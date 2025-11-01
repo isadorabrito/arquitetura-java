@@ -1,6 +1,8 @@
 package br.edu.infnet.isadoraapi.controllers;
 
 import br.edu.infnet.isadoraapi.dto.DonationDTO;
+import br.edu.infnet.isadoraapi.dto.DonationResponseDTO;
+import br.edu.infnet.isadoraapi.dto.DonationUpdateDTO;
 import br.edu.infnet.isadoraapi.model.Donation;
 import br.edu.infnet.isadoraapi.enums.DonationTypeEnum;
 import br.edu.infnet.isadoraapi.services.DonationService;
@@ -26,26 +28,24 @@ public class DonationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Donation>> listAll() {
-        List<Donation> donations = donationService.findAll();
+    public ResponseEntity<List<DonationResponseDTO>> listAll() {
+        List<DonationResponseDTO> donations = donationService.findAll();
         return ResponseEntity.ok(donations);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Donation> findById(@PathVariable Long id) {
+    public ResponseEntity<DonationResponseDTO> findById(@PathVariable Long id) {
         return donationService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/donors/{donorId}")
-    public ResponseEntity<Donation> create(
-            @PathVariable Long donorId,
-            @Valid @RequestBody DonationDTO donationDTO) {
+    @PostMapping()
+    public ResponseEntity<DonationResponseDTO> create(@Valid @RequestBody DonationDTO donationDTO) {
         var donation = new Donation();
         BeanUtils.copyProperties(donationDTO, donation);
         
-        Donation createdDonation = donationService.create(donation, donorId);
+        DonationResponseDTO createdDonation = donationService.create(donation, donationDTO.getDonorId(), donationDTO.getVolunteerId());
         
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -57,37 +57,39 @@ public class DonationController {
     }
 
     @GetMapping("/donors/{donorId}")
-    public ResponseEntity<List<Donation>> findByDonorId(@PathVariable Long donorId) {
-        List<Donation> donations = donationService.findByDonorId(donorId);
+    public ResponseEntity<List<DonationResponseDTO>> findByDonorId(@PathVariable Long donorId) {
+        List<DonationResponseDTO> donations = donationService.findByDonorId(donorId);
+        return ResponseEntity.ok(donations);
+    }
+
+    @GetMapping("/volunteers/{volunteerId}")
+    public ResponseEntity<List<DonationResponseDTO>> findByVolunteerId(@PathVariable Long volunteerId) {
+        List<DonationResponseDTO> donations = donationService.findByVolunteerId(volunteerId);
         return ResponseEntity.ok(donations);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Donation>> findByDateRange(
+    public ResponseEntity<List<DonationResponseDTO>> findByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        List<Donation> donations = donationService.findByDateRange(start, end);
+        List<DonationResponseDTO> donations = donationService.findByDateRange(start, end);
         return ResponseEntity.ok(donations);
     }
 
     @GetMapping("/types/{type}")
-    public ResponseEntity<List<Donation>> findByType(@PathVariable DonationTypeEnum type) {
-        List<Donation> donations = donationService.findByDonationType(type);
+    public ResponseEntity<List<DonationResponseDTO>> findByType(@PathVariable DonationTypeEnum type) {
+        List<DonationResponseDTO> donations = donationService.findByDonationType(type);
         return ResponseEntity.ok(donations);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable Long id, @Valid @RequestBody DonationDTO donationDTO) {
+    public ResponseEntity<DonationResponseDTO> update(@PathVariable Long id, @Valid @RequestBody DonationUpdateDTO donationDTO) {
         if (!donationService.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         
-        var donation = new Donation();
-        BeanUtils.copyProperties(donationDTO, donation);
-        donation.setId(id);
-        donationService.update(id, donation);
-        
-        return ResponseEntity.noContent().build();
+        DonationResponseDTO updatedDonation = donationService.update(id, donationDTO);
+        return ResponseEntity.ok(updatedDonation);
     }
 
     @DeleteMapping("/{id}")
