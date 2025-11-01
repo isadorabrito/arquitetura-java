@@ -2,16 +2,6 @@
 
 Sistema desenvolvido para gerenciar doações, doadores e voluntários, facilitando o processo e sua distribuição.
 
-## Sobre o Projeto
-
-Este é um sistema de gerenciamento de doações desenvolvido em Java com Spring Boot, que permite:
-
-- Cadastro e gerenciamento de doadores
-- Cadastro e gerenciamento de voluntários
-- Registro e acompanhamento de doações
-- Busca de doações por diferentes critérios
-- Geração de relatórios estatísticos
-
 ## Funcionalidades Principais
 
 - **Gestão de Doadores:**
