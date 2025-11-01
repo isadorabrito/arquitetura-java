@@ -1,5 +1,6 @@
 package br.edu.infnet.isadoraapi.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +19,7 @@ public class Donor extends Person {
     private boolean active;
     
     @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Donation> donations;
     
     public Donor() {

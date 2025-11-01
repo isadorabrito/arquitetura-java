@@ -1,6 +1,7 @@
 package br.edu.infnet.isadoraapi.model;
 
 import br.edu.infnet.isadoraapi.enums.DonationType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class Donation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_id", nullable = false)
+    @JsonBackReference
     private Donor donor;
 
     @Enumerated(EnumType.STRING)
