@@ -6,16 +6,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class VolunteerDTO {
 
     @NotBlank(message = "Name cannot be blank")
+    @Size(min = 3, max = 50, message = "Name must be between 3 and 50 characters")
     private String name;
 
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Invalid email format")
+    @Size(max = 50, message = "Email must not exceed 50 characters")
     private String email;
 
     @NotBlank(message = "CPF cannot be blank")
