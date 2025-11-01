@@ -22,13 +22,16 @@ public class DonorController {
     }
 
     @GetMapping
-    public List<Donor> listAll() {
-        return donorService.findAll();
+    public ResponseEntity<List<Donor>> listAll() {
+        List<Donor> donors = donorService.findAll();
+        return ResponseEntity.ok(donors);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Donor> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(donorService.findById(id).get());
+        return donorService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -36,31 +39,47 @@ public class DonorController {
         Donor donor = new Donor();
         BeanUtils.copyProperties(donorDTO, donor);
         Donor createdDonor = donorService.save(donor);
+        
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdDonor.getId())
                 .toUri();
+                
         return ResponseEntity.created(location).body(createdDonor);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable Long id, @Valid @RequestBody DonorDTO donorDTO) {
-        Donor donor = donorService.findById(id).get();
+        if (!donorService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Donor donor = new Donor();
         BeanUtils.copyProperties(donorDTO, donor);
+        donor.setId(id);
         donorService.save(donor);
+        
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!donorService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
         donorService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        if (!donorService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
         donorService.deactivate(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

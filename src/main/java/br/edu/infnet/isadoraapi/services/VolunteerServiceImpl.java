@@ -4,34 +4,36 @@ import br.edu.infnet.isadoraapi.exceptions.InvalidVolunteerException;
 import br.edu.infnet.isadoraapi.exceptions.NotFoundVolunteerException;
 import br.edu.infnet.isadoraapi.model.Address;
 import br.edu.infnet.isadoraapi.model.Volunteer;
+import br.edu.infnet.isadoraapi.repositories.DonorRepository;
+import br.edu.infnet.isadoraapi.repositories.VolunteerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class VolunteerServiceImpl implements VolunteerService {
 
-    private final ConcurrentHashMap<Long, Volunteer> volunteers = new ConcurrentHashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(0);
+    private final VolunteerRepository volunteerRepository;
+
+    public VolunteerServiceImpl(VolunteerRepository volunteerRepository, DonorRepository donorRepository) {
+        this.volunteerRepository = volunteerRepository;
+
+    }
 
     @Override
     public List<Volunteer> findAll() {
-        return new ArrayList<>(volunteers.values());
+        return volunteerRepository.findAll();
     }
 
     @Override
     public Optional<Volunteer> findById(Long id) {
-        Volunteer volunteer = volunteers.get(id);
-        if (volunteer == null) {
-            throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
-        }
-        return Optional.of(volunteer);
+        return volunteerRepository.findById(id)
+                .or(() -> {
+                    throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
+                });
     }
 
     @Override
@@ -40,11 +42,18 @@ public class VolunteerServiceImpl implements VolunteerService {
         validateVolunteer(volunteer);
 
         if (volunteer.getId() == null) {
-            volunteer.setId(idGenerator.incrementAndGet());
+            if (volunteerRepository.existsByCpf(volunteer.getCpf())) {
+                throw new InvalidVolunteerException(
+                        "Já existe um voluntário cadastrado com este CPF: " + volunteer.getCpf());
+            }
+            if (volunteerRepository.existsByRegistration(volunteer.getRegistration())) {
+                throw new InvalidVolunteerException("Já existe um voluntário cadastrado com este número de registro: "
+                        + volunteer.getRegistration());
+            }
             volunteer.setJoinDate(LocalDateTime.now());
         }
-        volunteers.put(volunteer.getId(), volunteer);
-        return volunteer;
+
+        return volunteerRepository.save(volunteer);
     }
 
     @Override
@@ -52,40 +61,35 @@ public class VolunteerServiceImpl implements VolunteerService {
     public void update(Long id, Volunteer volunteerDetails) {
         validateVolunteer(volunteerDetails);
 
-        if (!volunteers.containsKey(id)) {
-            throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
-        }
+        Volunteer existingVolunteer = volunteerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado."));
 
-        volunteers.computeIfPresent(id, (key, existingVolunteer) -> {
-            existingVolunteer.setName(volunteerDetails.getName());
-            existingVolunteer.setEmail(volunteerDetails.getEmail());
-            existingVolunteer.setPhone(volunteerDetails.getPhone());
-            existingVolunteer.setCpf(volunteerDetails.getCpf());
-            existingVolunteer.setRegistration(volunteerDetails.getRegistration());
-            return existingVolunteer;
-        });
+        existingVolunteer.setName(volunteerDetails.getName());
+        existingVolunteer.setEmail(volunteerDetails.getEmail());
+        existingVolunteer.setPhone(volunteerDetails.getPhone());
+        existingVolunteer.setCpf(volunteerDetails.getCpf());
+        existingVolunteer.setRegistration(volunteerDetails.getRegistration());
+
+        volunteerRepository.save(existingVolunteer);
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!volunteers.containsKey(id)) {
+        if (!volunteerRepository.existsById(id)) {
             throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
         }
-        volunteers.remove(id);
+        volunteerRepository.deleteById(id);
     }
 
     @Override
     @Transactional
     public Optional<Volunteer> updateAddress(Long id, Address newAddress) {
-        if (!volunteers.containsKey(id)) {
-            throw new NotFoundVolunteerException("Voluntário com ID " + id + " não encontrado.");
-        }
-        
-        return Optional.ofNullable(volunteers.computeIfPresent(id, (key, volunteer) -> {
-            volunteer.setAddress(newAddress);
-            return volunteer;
-        }));
+        return volunteerRepository.findById(id)
+                .map(volunteer -> {
+                    volunteer.setAddress(newAddress);
+                    return volunteerRepository.save(volunteer);
+                });
     }
 
     private void validateVolunteer(Volunteer volunteer) {

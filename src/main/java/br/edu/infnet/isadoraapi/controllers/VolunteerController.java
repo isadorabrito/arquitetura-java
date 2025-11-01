@@ -23,8 +23,9 @@ public class VolunteerController {
     }
 
     @GetMapping
-    public List<Volunteer> listAll() {
-        return volunteerService.findAll();
+    public ResponseEntity<List<Volunteer>> listAll() {
+        List<Volunteer> volunteers = volunteerService.findAll();
+        return ResponseEntity.ok(volunteers);
     }
 
     @GetMapping("/{id}")
@@ -37,37 +38,54 @@ public class VolunteerController {
     @PostMapping
     public ResponseEntity<Volunteer> create(@Valid @RequestBody VolunteerDTO volunteerDTO) {
         var volunteer = new Volunteer();
-        BeanUtils.copyProperties(volunteerDTO, volunteer);
+        BeanUtils.copyProperties(volunteerDTO, volunteer, "address");
+
+        var address = new Address();
+        BeanUtils.copyProperties(volunteerDTO.getAddress(), address);
+        volunteer.setAddress(address);
+
         Volunteer createdVolunteer = volunteerService.save(volunteer);
+
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdVolunteer.getId())
                 .toUri();
+
         return ResponseEntity.created(location).body(createdVolunteer);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Volunteer> update(@PathVariable Long id, @Valid @RequestBody VolunteerDTO volunteerDTO) {
-        var volunteer = volunteerService.findById(id).get();
-        BeanUtils.copyProperties(volunteerDTO, volunteer);
-        volunteerService.update(id, volunteer);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> update(@PathVariable Long id, @Valid @RequestBody VolunteerDTO volunteerDTO) {
+        if (!volunteerService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
 
+        var volunteer = new Volunteer();
+        BeanUtils.copyProperties(volunteerDTO, volunteer);
+        volunteer.setId(id);
+        volunteerService.update(id, volunteer);
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!volunteerService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
 
         volunteerService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/address")
-    public ResponseEntity<Void> updateAddress(@PathVariable Long id,
-            @RequestBody Address address) {
-        return volunteerService.updateAddress(id, address)
-                .map(v -> ResponseEntity.ok().<Void>build())
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> updateAddress(@PathVariable Long id, @Valid @RequestBody Address address) {
+        if (!volunteerService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        volunteerService.updateAddress(id, address);
+        return ResponseEntity.noContent().build();
     }
 }
